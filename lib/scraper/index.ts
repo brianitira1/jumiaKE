@@ -6,8 +6,8 @@ import { extractCurrency } from "../utils";
 export async function scrapeAmazonProduct(url: string) {
   if (!url) return;
 
-  const username = "brd-customer-hl_dc7cd116-zone-amazon";
-  const password = "34gzv9p9rdqc";
+  const username = "brd-customer-hl_b70c6150-zone-unblocker";
+  const password = "c83pmczspybj";
   const port = 22225;
   const session_id = (1000000 * Math.random()) | 0;
   const options = {
