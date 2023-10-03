@@ -3,15 +3,15 @@
 import React, { useState, FormEvent } from "react";
 import { scrapeAndStoreProduct } from "@/lib/actions";
 
-const isValidAmazonProductURL = (url: string) => {
+const isValidJumiaProductURL = (url: string) => {
   try {
     const parsedURL = new URL(url);
     const hostname = parsedURL.hostname;
 
     if (
-      hostname.includes("amazon.com") ||
-      hostname.includes("amazon.") ||
-      hostname.endsWith("amazon")
+      hostname.includes("jumia.com") ||
+      hostname.includes("jumia.") ||
+      hostname.endsWith("jumia")
     ) {
       return true;
     }
@@ -29,25 +29,32 @@ const Searchbar = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const isValidLink = isValidAmazonProductURL(searchPrompt);
+    const isValidLink = isValidJumiaProductURL(searchPrompt);
 
     if (!isValidLink)
-      return alert("provide a valid link for the Amazon market place");
+      return alert("Provide a valid link for the Jumia marketplace");
 
     try {
       setIsLoading(true);
 
+    
       const product = await scrapeAndStoreProduct(searchPrompt);
+
+    
+      console.log("Scraped Product:", product);
     } catch (error) {
+     
+      console.error("Scraping Error:", error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <form className="flex flex-wrap gap-4 mt-12" onSubmit={handleSubmit}>
       <input
         type="text"
-        placeholder="Put your amazon product link here"
+        placeholder="Put your Jumia product link here"
         className="searchbar-input"
         value={searchPrompt}
         onChange={(e) => setSearchPrompt(e.target.value)}
@@ -57,7 +64,7 @@ const Searchbar = () => {
         className="searchbar-btn"
         disabled={searchPrompt === ""}
       >
-        {isLoading ? "scrapping..." : "scrap"}
+        {isLoading ? "Scraping..." : "Scrape"}
       </button>
     </form>
   );

@@ -1,20 +1,37 @@
+"use server";
+
 import axios from "axios";
 import * as cheerio from "cheerio";
-import { extractPrice } from "../utils";
-import { extractCurrency } from "../utils";
 
-export async function scrapeAmazonProduct(url: string) {
+interface Review {
+  rating: string;
+  title: string;
+  content: string;
+  date: string;
+  verified: boolean;
+}
+
+const reviews: Review[] = [];
+
+export async function scrapeJumiaProduct(url: string) {
   if (!url) return;
 
-  const username = "brd-customer-hl_b70c6150-zone-unblocker";
-  const password = "c83pmczspybj";
+  const username = "brd-customer-hl_dc7cd116-zone-jumia";
+  const password = "34gzv9p9rdqc";
   const port = 22225;
   const session_id = (1000000 * Math.random()) | 0;
+
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.9999.999 Safari/537.36",
+  };
+
   const options = {
     auth: {
       username: `${username}-session-${session_id}`,
       password,
     },
+    headers,
     host: "brd.superproxy.io:22225",
     port,
     rejectUnauthorized: false,
@@ -24,143 +41,67 @@ export async function scrapeAmazonProduct(url: string) {
     const response = await axios.get(url, options);
     const $ = cheerio.load(response.data);
 
-    const title = $("#productTitle").text().trim();
+    const title = $("h1.-fs20.-pts.-pbxs").text().trim();
 
-    const currectPrice = extractPrice(
-      $(".priceToPay span.a-price-whole"),
-      $(".a-size.base.a-color-price"),
-      $(".a-button-selected .a-color-base"),
-    );
+    const currentPrice = $("span.-b.-ltr.-tal.-fs24.-prxs").text().trim();
 
-    const inStock = extractPrice(
-      $("#priceblock_ourprice"),
-      $(".a-price.a-text-price span.a-offscreen"),
-      $("#listPrice"),
-      $(".a-size-base.a-color-price"),
-    );
+    const originalPrice = $("span.-tal.-gy5.-lthr.-fs16.-pvxs").text().trim();
 
-    const currency = extractCurrency($(".a-price-symbol"));
+    const imageUrl = $("img.-fw.-fh").attr("data-src");
 
-    const discount = $(".savingsPercentage").text().replace(/[-%]/g, "");
+    const deliveryFees = $("div.markup.-ptxs em").text().trim();
 
-    const image =
-      $("#imgBlkFront").attr("data-a-dynamic-image") ||
-      $("#landingImage").attr("data-a-dynamic-image") ||
-      "{}";
+    const productDetails = $("div.markup.-mhm.-pvl.-oxa.-sc").text().trim();
 
-    const imageUrls = Object.keys(JSON.parse(image));
+    const reviewsSection = $("div.cola.-phm.-df.-d-co");
 
-    const modelName = $(
-      "div.a-row.a-spacing-small.po-model_name span.a-size-base.po-break-word",
-    )
-      .text()
-      .trim();
+    const reviews = [];
 
-    const aboutItem = $(
-      "h1.a-size-base-plus.a-text-bold:contains('About this item')",
-    )
-      .closest("div#feature-bullets")
-      .find(
-        "ul.a-unordered-list.a-vertical.a-spacing-mini li.a-spacing-mini span.a-list-item",
-      )
-      .map((_, element) => $(element).text().trim())
-      .get();
+    reviewsSection.find("article.-pvs.-hr._bet").each((index, element) => {
+      const reviewElement = $(element);
 
-    const productDescription = $("#productDescription").text().trim();
-
-    const whyThis = {
-      brand: $("div.po-brand span.a-size-base.po-break-word").text().trim(),
-      modelName: $("div.po-model_name span.a-size-base.po-break-word")
+      const rating = reviewElement.find("div.stars").text().trim();
+      const reviewTitle = reviewElement.find("h3.-m.-fs16.-pvs").text().trim();
+      const reviewContent = reviewElement.find("p.-pvs").text().trim();
+      const reviewDate = reviewElement
+        .find("div.-df.-j-bet.-i-ctr.-gy5 span.-prs")
         .text()
-        .trim(),
-      screenSize: $("div.po-display.size span.a-size-base.po-break-word")
-        .text()
-        .trim(),
-      color: $("div.po-color span.a-size-base.po-break-word").text().trim(),
-      hardDiskSize: $("div.po-hard_disk.size span.a-size-base.po-break-word")
-        .text()
-        .trim(),
-      cpuModel: $("div.po-cpu_model.family span.a-size-base.po-break-word")
-        .text()
-        .trim(),
-      ramMemorySize: $(
-        "div.po-ram_memory.installed_size span.a-size-base.po-break-word",
-      )
-        .text()
-        .trim(),
-      operatingSystem: $(
-        "div.po-operating_system span.a-size-base.po-break-word",
-      )
-        .text()
-        .trim(),
-      specialFeature: $("div.po-special_feature span.a-size-base.po-break-word")
-        .text()
-        .trim(),
-    };
+        .trim();
+      const isVerified =
+        reviewElement.find("div.-df.-i-ctr.-gn5.-fsh0 svg.ic.-f-gn5").length >
+        0;
 
-    const priceElement = $(
-      "tr:contains('Price') span.a-size-base.a-color-base",
-    );
-    const shippingElement = $(
-      "tr:contains('AmazonGlobal Shipping') span.a-size-base.a-color-base",
-    );
-    const depositElement = $(
-      "tr:contains('Estimated Import Fees Deposit') span.a-size-base.a-color-base",
-    );
+      const reviewData = {
+        rating,
+        title: reviewTitle,
+        content: reviewContent,
+        date: reviewDate,
+        verified: isVerified,
+      };
 
-    const shippingCost = parseFloat(
-      shippingElement.text().trim().replace("$", ""),
-    );
-    const depositFee = parseFloat(
-      depositElement.text().trim().replace("$", ""),
-    );
-
-    const totalPrice =
-      Number(currectPrice.replace(/,/g, "")) + shippingCost + depositFee;
-
-    console.log({
-      totalPrice,
-      shippingCost,
-      depositFee,
-      title,
-      currectPrice,
-      inStock,
-      imageUrls,
-      currency,
-      discount,
-      modelName,
-      aboutItem,
-      productDescription,
-      whyThis,
+      reviews.push(reviewData);
     });
 
-    const data = {
-      url,
-      currency: currency || "$",
+    const productImages = [];
+    const imagesCarousel = $("#imgs-crsl .itm img");
+
+    imagesCarousel.each((index, element) => {
+      const imageUrl = $(element).attr("data-src");
+      if (imageUrl) {
+        productImages.push(imageUrl);
+      }
+    });
+
+    console.log({
       title,
-      currectPrice: Number(currectPrice.replace(/,/g, "")),
-      inStock: inStock,
-      imageUrls,
-      discount: Number(discount),
-      modelName,
-      aboutItem,
-      productDescription,
-      whyThis: {
-        brand: whyThis.brand,
-        modelName: whyThis.modelName,
-        screenSize: whyThis.screenSize,
-        color: whyThis.color,
-        hardDiskSize: whyThis.hardDiskSize,
-        cpuModel: whyThis.cpuModel,
-        ramMemorySize: whyThis.ramMemorySize,
-        operatingSystem: whyThis.operatingSystem,
-        specialFeature: whyThis.specialFeature,
-      },
-      totalPrice,
-      shippingCost,
-      depositFee,
-    };
-    return data;
+      currentPrice,
+      originalPrice,
+      imageUrl,
+      deliveryFees,
+      productDetails,
+      productReviews: reviews,
+      productImages,
+    });
   } catch (error: any) {
     throw new Error(`Failed to scrape product: ${error.message}`);
   }

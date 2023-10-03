@@ -21,7 +21,7 @@ const Navbar = () => {
 
           <p className="nav-logo">
             {" "}
-            Shopping<span className="text-primary">Scrapper</span>{" "}
+            Jumia<span className="text-primary">Scrapper</span>{" "}
           </p>
         </Link>
 
