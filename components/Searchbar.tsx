@@ -31,19 +31,17 @@ const Searchbar = () => {
 
     const isValidLink = isValidJumiaProductURL(searchPrompt);
 
-    if (!isValidLink)
+    if (!isValidLink) {
       return alert("Provide a valid link for the Jumia marketplace");
+    }
 
     try {
       setIsLoading(true);
 
-    
       const product = await scrapeAndStoreProduct(searchPrompt);
 
-    
       console.log("Scraped Product:", product);
-    } catch (error) {
-     
+    } catch (error: any) { // Explicit type annotation for error
       console.error("Scraping Error:", error.message);
     } finally {
       setIsLoading(false);
@@ -62,7 +60,7 @@ const Searchbar = () => {
       <button
         type="submit"
         className="searchbar-btn"
-        disabled={searchPrompt === ""}
+        disabled={searchPrompt === "" || isLoading}
       >
         {isLoading ? "Scraping..." : "Scrape"}
       </button>
