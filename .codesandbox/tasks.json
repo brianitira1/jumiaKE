@@ -17,29 +17,34 @@
         "port": 3000
       },
       "restartOn": {
-        "files": ["./package-lock.json"]
+        "files": [
+          "./package-lock.json"
+        ],
+        "branch": false,
+        "resume": false
       }
     },
     "build": {
       "name": "Build",
-      "command": "npm run build",
-      "runAtStart": false
+      "command": "npm run build"
     },
     "start": {
       "name": "Start Server",
-      "command": "npm run start",
-      "runAtStart": false
+      "command": "npm run start"
     },
     "lint": {
       "name": "Lint",
-      "command": "npm run lint",
-      "runAtStart": false
+      "command": "npm run lint"
     },
     "install": {
       "name": "Install Dependencies",
       "command": "npm install",
       "restartOn": {
-        "files": ["./package.json"]
+        "files": [
+          "./package.json"
+        ],
+        "branch": false,
+        "resume": false
       }
     }
   }

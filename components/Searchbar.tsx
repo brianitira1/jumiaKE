@@ -41,7 +41,8 @@ const Searchbar = () => {
       const product = await scrapeAndStoreProduct(searchPrompt);
 
       console.log("Scraped Product:", product);
-    } catch (error: any) { // Explicit type annotation for error
+    } catch (error: any) {
+      // Explicit type annotation for error
       console.error("Scraping Error:", error.message);
     } finally {
       setIsLoading(false);

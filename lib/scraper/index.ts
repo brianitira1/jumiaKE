@@ -16,8 +16,8 @@ const reviews: Review[] = [];
 export async function scrapeJumiaProduct(url: string) {
   if (!url) return;
 
-  const username = "brd-customer-hl_dc7cd116-zone-jumia";
-  const password = "34gzv9p9rdqc";
+  const username = "brd-customer-hl_dc7cd116-zone-unblocker";
+  const password = "rylc05lhpa28";
   const port = 22225;
   const session_id = (1000000 * Math.random()) | 0;
 
@@ -106,3 +106,7 @@ export async function scrapeJumiaProduct(url: string) {
     throw new Error(`Failed to scrape product: ${error.message}`);
   }
 }
+
+scrapeJumiaProduct(
+  "https://www.jumia.co.ke/vitron-v527-2.1-ch-multimedia-speaker-btusbsdfm-9000w-25642251.html",
+);
