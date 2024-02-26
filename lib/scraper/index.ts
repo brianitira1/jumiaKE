@@ -11,7 +11,7 @@ interface Review {
   verified: boolean;
 }
 
-const reviews: Review[] = [];
+const productReviews: Review[] = [];
 
 export async function scrapeJumiaProduct(url: string) {
   if (!url) return;
@@ -55,7 +55,7 @@ export async function scrapeJumiaProduct(url: string) {
 
     const reviewsSection = $("div.cola.-phm.-df.-d-co");
 
-    const reviews = [];
+    const reviews: string[] = [];
 
     reviewsSection.find("article.-pvs.-hr._bet").each((index, element) => {
       const reviewElement = $(element);
@@ -79,10 +79,12 @@ export async function scrapeJumiaProduct(url: string) {
         verified: isVerified,
       };
 
-      reviews.push(reviewData);
+      productReviews.push(reviewData);
     });
 
-    const productImages = [];
+    
+
+    const productImages: string[] = [];
     const imagesCarousel = $("#imgs-crsl .itm img");
 
     imagesCarousel.each((index, element) => {
@@ -90,6 +92,7 @@ export async function scrapeJumiaProduct(url: string) {
       if (imageUrl) {
         productImages.push(imageUrl);
       }
+
     });
 
     console.log({
